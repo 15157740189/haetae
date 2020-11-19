@@ -202,7 +202,73 @@ public class ActivityRecordServiceImpl implements ActivityRecordService {
             stamps.add(stampBuilder.build());
         }
 
+        //gc
+        activityMap = null;
         return stampManager.parseStampRecord(request.getType(), stamps);
+    }
+
+    @Override
+    public double[] getUserAllStamps(ActivityStampRequest request, OperateContext context) {
+        AssertUtil.assertStringNotBlank(request.getUserId(), "用户id不能为空");
+        List<ActivityRecordBO> activityRecords = new ArrayList<>();
+        if (StringUtils.isBlank(request.getTerm())) {
+            activityRecords.addAll(activityRecordManager.findByUserId(request.getUserId()));
+        } else {
+           activityRecords.addAll(activityRecordManager.findByUserIdAndTerm(request.getUserId() , request.getTerm()));
+        }
+
+
+        // set 去重
+        Set<String> activityIds = CollectionUtils.toStream(activityRecords).filter(Objects::nonNull)
+                .map(ActivityRecordBO::getActivityId).collect(Collectors.toSet());
+
+        // 活动map
+        Map<String, ActivityBO> activityMap = new HashMap<>(16);
+        for (String activityId : activityIds) {
+            ActivityBO activityBO = activityRepoService.queryActivityByActivityId(activityId);
+            if (activityBO == null) {
+                LoggerUtil.error(LOGGER, "活动不存在, activityId={0}", activityId);
+                ActivityBO activity = new ActivityBO();
+                activity.setActivityName("异常活动, 请尽快联系管理员");
+                activityMap.put(activityId, activity);
+            } else {
+                activityMap.put(activityId, activityBO);
+            }
+        }
+
+        // 组装活动章
+        List<ActivityStamp> stamps = new ArrayList<>();
+
+        ActivityStampBuilder stampBuilder = ActivityStampBuilder.getInstance();
+        for (ActivityRecordBO record : activityRecords) {
+            if (StringUtils.isBlank(record.getScannerName())) {
+                String scannerName = userInfoRepoService.queryUserInfoByUserId(record.getScannerUserId()).getRealName();
+                activityRecordManager.updateScannerName(record.getActivityRecordId(), scannerName);
+                record.setScannerName(scannerName);
+            }
+            stampBuilder.withActivityBO(activityMap.get(record.getActivityId()))
+                    .withActivityRecordBO(record);
+            stamps.add(stampBuilder.build());
+        }
+
+        double[] stampCount = new double[5];
+        for (ActivityStamp stamp:stamps) {
+            if (activityMap.get(stamp.getActivityId()).getType().equals(ActivityTypeEnum.SCHOOL_ACTIVITY.getCode())){
+                stampCount[0]++;
+            }else if (activityMap.get(stamp.getActivityId()).getType().equals(ActivityTypeEnum.LECTURE_ACTIVITY.getCode())){
+                stampCount[1]++;
+            }else if (activityMap.get(stamp.getActivityId()).getType().equals(ActivityTypeEnum.PRACTICE_ACTIVITY.getCode())){
+                stampCount[2]++;
+            }else if (activityMap.get(stamp.getActivityId()).getType().equals(ActivityTypeEnum.VOLUNTEER_ACTIVITY.getCode())){
+                stampCount[3]+=Double.parseDouble(stamp.getActivityTime());
+            }else if (activityMap.get(stamp.getActivityId()).getType().equals(ActivityTypeEnum.VOLUNTEER_ACTIVITY.getCode())){
+                stampCount[4]+=Double.parseDouble(stamp.getActivityTime());
+            }
+
+        }
+        //gc
+        activityMap = null;
+        return stampCount;
     }
 
     @Override

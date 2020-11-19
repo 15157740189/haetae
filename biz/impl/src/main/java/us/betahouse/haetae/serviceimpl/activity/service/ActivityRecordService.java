@@ -47,6 +47,17 @@ public interface ActivityRecordService {
      */
     StampRecord getUserStamps(ActivityStampRequest request, OperateContext context);
 
+
+    /**
+     * 获取用户每种活动章个数和志愿时长
+     *
+     * @param request
+     * @param context
+     * @return
+     */
+    double[] getUserAllStamps(ActivityStampRequest request, OperateContext context);
+
+
     /**
      * 通过活动id统计活动记录条数
      *

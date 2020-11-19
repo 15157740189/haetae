@@ -91,7 +91,7 @@ public class UserActivityStampController {
             public void before() {
                 AssertUtil.assertNotNull(request, RestResultCode.ILLEGAL_PARAMETERS.getCode(), "请求体不能为空");
                 AssertUtil.assertStringNotBlank(request.getUserId(), RestResultCode.ILLEGAL_PARAMETERS.getCode(), "用户id不能为空");
-                AssertUtil.assertStringNotBlank(request.getActivityType(), RestResultCode.ILLEGAL_PARAMETERS.getCode(), "活动类型不能为空");
+                //AssertUtil.assertStringNotBlank(request.getActivityType(), RestResultCode.ILLEGAL_PARAMETERS.getCode(), "活动类型不能为空");
             }
 
             @Override
@@ -100,12 +100,14 @@ public class UserActivityStampController {
                 context.setOperateIP(IPUtil.getIpAddr(httpServletRequest));
                 List<Map<String, String>> data = new ArrayList<>();
 
-                double[] stampCount = new double[5];
+                double[] stampCount;
                 ActivityStampRequestBuilder builder = ActivityStampRequestBuilder.getInstance()
                         .withTerm(request.getTerm())
                         .withUserId(request.getUserId());
 
-                builder.withType("schoolActivity");
+                stampCount = activityRecordService.getUserAllStamps(builder.build(),context);
+
+               /* builder.withType("schoolActivity");
                 StampRecord schoolActivityStampRecord = activityRecordService.getUserStamps(builder.build(), context);
                 stampCount[0] = schoolActivityStampRecord.getActivityStamps().size();
 
@@ -133,7 +135,7 @@ public class UserActivityStampController {
                 for (ActivityStamp stamp : volunteerWorkStamps) {
                     volunteerWorkTime += Double.parseDouble(stamp.getActivityTime());
                 }
-                stampCount[4] = volunteerWorkTime;
+                stampCount[4] = volunteerWorkTime;*/
 
                 // 正在报名 1 即将开始 0 过期 -1
                 int[] activityEntry = new int[]{-1};
