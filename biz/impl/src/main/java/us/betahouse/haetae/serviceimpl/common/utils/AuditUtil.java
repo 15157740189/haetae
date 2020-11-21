@@ -86,9 +86,7 @@ public class AuditUtil {
 
             JSONObject resultJson = JSONObject.parseObject(result);
             String code = resultJson.getString(ERROR_CODE);
-            //GC
-            jsonObject=null;
-            result=null;
+
             if (StringUtils.equals(code,"0")) {
                 return CommonResultCode.SUCCESS.getCode();
             }else if (StringUtils.equals(code,"42001")){

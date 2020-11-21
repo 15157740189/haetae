@@ -56,8 +56,6 @@ public class WeChatAccessTokenUtil {
 
         String accessToken = jsonObject.getString(ACCESS_TOKEN);
         AssertUtil.assertStringNotBlank(accessToken, CommonResultCode.SYSTEM_ERROR.getCode(), MessageFormat.format("微信服务器请求失败:{0}", jsonObject.getString(ERROR_CODE)));
-        //gc
-        parameterMap=null;
         return accessToken;
     }
 

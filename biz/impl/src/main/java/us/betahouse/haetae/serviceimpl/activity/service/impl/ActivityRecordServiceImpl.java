@@ -201,9 +201,6 @@ public class ActivityRecordServiceImpl implements ActivityRecordService {
                     .withActivityRecordBO(record);
             stamps.add(stampBuilder.build());
         }
-
-        //gc
-        activityMap = null;
         return stampManager.parseStampRecord(request.getType(), stamps);
     }
 
@@ -266,8 +263,7 @@ public class ActivityRecordServiceImpl implements ActivityRecordService {
             }
 
         }
-        //gc
-        activityMap = null;
+
         return stampCount;
     }
 
